@@ -1,0 +1,10 @@
+CREATE TABLE organizations (
+    id BIGSERIAL PRIMARY KEY,
+    github_installation_id BIGINT NOT NULL UNIQUE,
+    github_org_id BIGINT NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    plan_type VARCHAR(50),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
