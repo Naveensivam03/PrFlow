@@ -2,19 +2,17 @@ package prflow.spring_backend.modules.organization.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import prflow.spring_backend.entity.BaseEntity;
+import prflow.spring_backend.modules.developer.domain.Developer;
+import prflow.spring_backend.modules.repository.domain.Repository;
 
 @Entity
 @Table(name = "organizations")
-public class Organization {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Organization extends BaseEntity {
 
     @Column(name = "github_installation_id", nullable = false, unique = true)
     private Long githubInstallationId;
@@ -31,15 +29,11 @@ public class Organization {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @OneToMany(mappedBy = "organization")
+    private Set<Developer> developers = new LinkedHashSet<>();
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
-    public Long getId() {
-        return id;
-    }
+    @OneToMany(mappedBy = "organization")
+    private Set<Repository> repositories = new LinkedHashSet<>();
 
     public Long getGithubInstallationId() {
         return githubInstallationId;
@@ -81,11 +75,11 @@ public class Organization {
         isActive = active;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public Set<Developer> getDevelopers() {
+        return developers;
     }
 
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
+    public Set<Repository> getRepositories() {
+        return repositories;
     }
 }
