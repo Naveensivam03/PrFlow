@@ -43,6 +43,11 @@ Not implemented:
 8. Transaction commits.
 9. Service emits internal `PULL_REQUEST_ANALYZED`.
 
+Tenant resolution note:
+- If `organization.id` is present (org-owned repo), use it.
+- If `organization` is absent (user-owned repo), fallback to `repository.owner.id`.
+- This keeps persistence deterministic across both repo ownership models.
+
 ## Why normalized events first
 
 Normalization isolates external webhook shape from internal workflow contracts. Orchestration starts from stable internal semantics, not provider-specific payloads.
@@ -118,8 +123,8 @@ Failure logs:
 ### Type and startup checks
 ```bash
 cd integrations/github-webhook-service
-npm run typecheck
-npm run dev
+bun run typecheck
+bun run dev
 ```
 
 ### SQL verification queries

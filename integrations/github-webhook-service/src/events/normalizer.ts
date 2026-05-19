@@ -15,9 +15,10 @@ function resolveStatus(action: PullRequestEventPayload["action"], mergedAt: stri
 
 export function normalizePullRequestEvent(input: NormalizeInputBase & { payload: PullRequestEventPayload }): PrflowEvent | null {
   const { action, pull_request: pr, repository, organization, installation } = input.payload;
+  const tenantOrgId = organization?.id ?? repository.owner.id;
 
   const base = {
-    organizationId: String(organization?.id ?? "unknown"),
+    organizationId: String(tenantOrgId),
     repositoryId: String(repository.id),
     githubPrNumber: pr.number,
     occurredAt: action === "closed" ? pr.closed_at ?? pr.updated_at : pr.updated_at,
@@ -25,7 +26,7 @@ export function normalizePullRequestEvent(input: NormalizeInputBase & { payload:
     rawEvent: input.eventName,
     pullRequest: {
       githubRepoId: repository.id,
-      githubOrgId: organization?.id,
+      githubOrgId: tenantOrgId,
       installationId: installation?.id,
       owner: repository.owner.login,
       repo: repository.name,
@@ -63,6 +64,7 @@ export function normalizePullRequestReviewEvent(
   input: NormalizeInputBase & { payload: PullRequestReviewEventPayload }
 ): PrflowEvent | null {
   const { action, review, repository, organization, pull_request: pr } = input.payload;
+  const tenantOrgId = organization?.id ?? repository.owner.id;
 
   if (action !== "submitted") {
     return null;
@@ -70,7 +72,7 @@ export function normalizePullRequestReviewEvent(
 
   return {
     eventType: "PULL_REQUEST_REVIEW_SUBMITTED",
-    organizationId: String(organization?.id ?? "unknown"),
+    organizationId: String(tenantOrgId),
     repositoryId: String(repository.id),
     githubPrNumber: pr.number,
     occurredAt: review.submitted_at,

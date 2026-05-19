@@ -53,6 +53,7 @@ set +a
 : "${POSTGRES_PORT:?POSTGRES_PORT is required in infra/docker/.env}"
 
 DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}"
+SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:${POSTGRES_PORT}/${POSTGRES_DB}"
 
 is_port_in_use() {
   local port="$1"
@@ -156,6 +157,9 @@ if [[ -x "$ROOT_DIR/backend/spring-api/mvnw" ]]; then
   echo "[INFO] Running Flyway via Spring Boot (non-web mode)..."
   (
     cd "$ROOT_DIR/backend/spring-api"
+    export SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL"
+    export SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"
+    export SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"
     ./mvnw -q -DskipTests -Dspring.main.web-application-type=none spring-boot:run
   )
   echo "[INFO] Flyway migration run completed"
@@ -166,9 +170,12 @@ else
 fi
 echo
 echo "Next commands:"
+echo "  # Terminal 1 (you run this separately)"
 echo "  cd $ROOT_DIR/integrations/github-webhook-service"
 echo "  bun install"
 echo "  bun run dev"
+echo "  # Terminal 2 (you run ngrok separately)"
+echo "  ngrok http 3001"
 echo
 echo "Quick verification:"
 echo "  docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"

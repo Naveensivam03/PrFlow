@@ -115,13 +115,13 @@ Event ingestion normalizes PR events; this integration enriches those events wit
 ### 1) Typecheck
 ```bash
 cd integrations/github-webhook-service
-npm run typecheck
+bun run typecheck
 ```
 
 ### 2) Runtime smoke with webhook service
 ```bash
 cd integrations/github-webhook-service
-npm run dev
+bun run dev
 ```
 
 Expect no startup errors related to:

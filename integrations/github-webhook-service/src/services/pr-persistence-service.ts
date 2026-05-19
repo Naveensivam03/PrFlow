@@ -49,10 +49,13 @@ export class PullRequestPersistenceService {
 
     const pr = event.pullRequest;
     const installationId = pr.installationId;
-    const githubOrgId = pr.githubOrgId;
+    const githubOrgId = pr.githubOrgId ?? Number(event.organizationId);
 
-    if (!installationId || !githubOrgId) {
-      throw new Error("Missing installation or organization information for PR persistence");
+    if (!installationId) {
+      throw new Error("Missing installation information for PR persistence");
+    }
+    if (!Number.isFinite(githubOrgId)) {
+      throw new Error("Missing tenant organization identifier for PR persistence");
     }
 
     logger.info("Starting PR persistence workflow", {
