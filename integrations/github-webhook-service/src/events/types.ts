@@ -36,4 +36,6 @@ export interface PrflowEvent {
   deliveryId: string;
   rawEvent: string;
   pullRequest?: PrflowPullRequestContext;
+  dbPullRequestId?: number;
+  dbRepositoryId?: number;
 }

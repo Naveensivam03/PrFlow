@@ -30,6 +30,7 @@ No application code, Docker definitions, or service bootstrapping yet.
 ## Getting Started
 1. Clone repository
 2. Review docs in `docs/`
+3. For Complexity Engine implementation details, read `docs/engines/complexity-engine-implementation-guide.md`
 3. Start service scaffolding phase
 
 ## Contributing

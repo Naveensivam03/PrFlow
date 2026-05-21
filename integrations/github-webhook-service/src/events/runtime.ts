@@ -13,6 +13,6 @@ dispatcher.subscribe("PULL_REQUEST_OPENED", async (event) => {
   await pullRequestOpenedHandler.handle(event);
 });
 
-dispatcher.subscribe("PULL_REQUEST_ANALYZED", (event) => {
-  pullRequestAnalyzedHandler.handle(event);
+dispatcher.subscribe("PULL_REQUEST_ANALYZED", async (event) => {
+  await pullRequestAnalyzedHandler.handle(event);
 });

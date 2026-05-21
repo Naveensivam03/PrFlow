@@ -75,6 +75,9 @@ export class PullRequestPersistenceService {
     });
     const uniqueFiles = deduplicateFilesByPath(files);
 
+    let repositoryId: number = 0;
+    let pullRequestId: number = 0;
+
     await Bun.sql.begin(async (tx) => {
       await this.acquireWorkflowLock(tx, {
         owner: pr.owner,
@@ -94,7 +97,7 @@ export class PullRequestPersistenceService {
         name: pr.owner
       });
 
-      const repositoryId = await this.upsertRepository(tx, {
+      repositoryId = await this.upsertRepository(tx, {
         organizationId,
         githubRepoId: pr.githubRepoId,
         name: pr.repo
@@ -108,7 +111,7 @@ export class PullRequestPersistenceService {
         avatarUrl: pr.author.avatarUrl
       });
 
-      const pullRequestId = await this.upsertPullRequest(tx, {
+      pullRequestId = await this.upsertPullRequest(tx, {
         repositoryId,
         authorId,
         githubPrNumber: event.githubPrNumber,
@@ -132,7 +135,9 @@ export class PullRequestPersistenceService {
 
     await this.dispatcher.publish({
       ...event,
-      eventType: "PULL_REQUEST_ANALYZED"
+      eventType: "PULL_REQUEST_ANALYZED",
+      dbPullRequestId: pullRequestId,
+      dbRepositoryId: repositoryId
     });
 
     logger.info("PR persistence workflow completed", {

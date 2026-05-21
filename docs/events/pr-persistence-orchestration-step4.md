@@ -190,3 +190,14 @@ psql -h localhost -p 5432 -U prflow_app -d prflow_db
 ## Why this is foundational
 
 PRFlow now has persistent workflow memory: normalized event -> transactional aggregate mutation -> chained internal event. This is the bridge from infrastructure plumbing into intelligence-ready orchestration for future complexity, expertise, and assignment engines.
+
+## Step 5: Complexity Intelligence Enrichment (V1)
+
+After `PULL_REQUEST_ANALYZED`, PRFlow now runs an isolated complexity intelligence engine.
+
+- Handler: `engines/complexity/PullRequestAnalyzedHandler`
+- Service: `engines/complexity/ComplexityService`
+- Calculator: `engines/complexity/ComplexityCalculator`
+- Output event: `COMPLEXITY_CALCULATED`
+
+This preserves modular orchestration boundaries: persistence modules own durable workflow state, while engines own deterministic derived intelligence.

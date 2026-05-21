@@ -7,7 +7,8 @@ const envSchema = z.object({
   GITHUB_WEBHOOK_SECRET: z.string().min(1, "GITHUB_WEBHOOK_SECRET is required"),
   GITHUB_APP_ID: z.string().min(1, "GITHUB_APP_ID is required"),
   GITHUB_APP_PRIVATE_KEY: z.string().min(1, "GITHUB_APP_PRIVATE_KEY is required"),
-  DATABASE_URL: z.string().url("DATABASE_URL must be a valid postgres URL")
+  DATABASE_URL: z.string().url("DATABASE_URL must be a valid postgres URL"),
+  BACKEND_URL: z.string().url("BACKEND_URL must be a valid URL").default("http://localhost:8080")
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
