@@ -9,11 +9,13 @@ import { logger } from "../logging/logger";
 import { WebhookLogRepository } from "../persistence/webhook-log-repository";
 
 const webhookLogRepository = new WebhookLogRepository();
-
+//function to get req and response 
 export async function githubWebhookHandler(req: Request, res: Response): Promise<void> {
+  //extract these values from request
   const deliveryId = req.header("x-github-delivery") ?? "missing-delivery-id";
   const eventName = req.header("x-github-event") ?? "unknown";
   const signature = req.header("x-hub-signature-256") ?? undefined;
+  //other request from body and not in header.
   const rawBody = req.body as Buffer;
 
   logger.info("GitHub webhook received", { deliveryId, eventName });
