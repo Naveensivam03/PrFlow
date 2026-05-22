@@ -113,6 +113,14 @@ public class ReviewSyncService {
                 // C. Persist/upsert the review (conflict-safe)
                 upsertPullRequestReview(pullRequestId, reviewerDeveloperId, dto);
                 logger.info("reviews.persisted pullRequestId={} reviewId={}", pullRequestId, dto.id());
+
+                // D. Mark matching reviewer assignment as COMPLETED if active
+                jdbcTemplate.update(
+                    "UPDATE reviewer_assignments SET assignment_status = 'COMPLETED', updated_at = CURRENT_TIMESTAMP " +
+                    "WHERE pull_request_id = ? AND developer_id = ? AND assignment_status IN ('ASSIGNED', 'REMINDER_SENT', 'STALE')",
+                    pullRequestId,
+                    reviewerDeveloperId
+                );
             }
 
             // 5. Enrich reviewer expertise memory for each unique reviewer

@@ -44,11 +44,19 @@ public class AssignmentService {
      */
     @Transactional
     public void assignReviewers(ExpertiseCalculatedEvent event) {
+        assignReviewers(event, Collections.emptyList());
+    }
+
+    /**
+     * Overloaded Reviewer Assignment pipeline supporting explicit developer exclusions for reassignment.
+     */
+    @Transactional
+    public void assignReviewers(ExpertiseCalculatedEvent event, List<Long> excludedDeveloperIds) {
         Long pullRequestId = event.pullRequestId();
         Long repositoryId = event.repositoryId();
 
         System.out.println("[DEBUG][AssignmentEngine] assignment.started pullRequestId=" + pullRequestId);
-        logger.info("assignment.started pullRequestId={} repositoryId={}", pullRequestId, repositoryId);
+        logger.info("assignment.started pullRequestId={} repositoryId={} exclusions={}", pullRequestId, repositoryId, excludedDeveloperIds);
 
         try {
             // 1. Fetch Pull Request metadata
@@ -85,9 +93,18 @@ public class AssignmentService {
             logger.info("candidates.loaded pullRequestId={} repositoryId={} candidateCount={}", 
                 pullRequestId, repositoryId, allContributors.size());
 
-            // 3. Exclude PR author from candidates pool
+            // Query active reviewer assignments on this PR to exclude them and calculate target slots
+            List<Long> activeReviewerIds = jdbcTemplate.query(
+                "SELECT developer_id FROM reviewer_assignments WHERE pull_request_id = ? AND assignment_status IN ('ASSIGNED', 'REMINDER_SENT', 'STALE')",
+                (rs, rowNum) -> rs.getLong("developer_id"),
+                pullRequestId
+            );
+
+            // 3. Exclude PR author, explicitly excluded developers, and active reviewers from candidates pool
             List<DeveloperMeta> poolWithoutAuthor = allContributors.stream()
                 .filter(c -> !c.id().equals(authorId))
+                .filter(c -> !excludedDeveloperIds.contains(c.id()))
+                .filter(c -> !activeReviewerIds.contains(c.id()))
                 .collect(Collectors.toList());
 
             System.out.println("[DEBUG][AssignmentEngine] candidates.filtered pullRequestId=" + pullRequestId 
@@ -122,9 +139,18 @@ public class AssignmentService {
 
             List<ReviewerCandidate> assignedCandidates = new ArrayList<>();
             int targetLimit = config.getDefaultReviewerLimit();
+            int remainingLimit = targetLimit - activeReviewerIds.size();
+
+            if (remainingLimit <= 0) {
+                System.out.println("[DEBUG][AssignmentEngine] assignments.skipped pullRequestId=" + pullRequestId 
+                    + " activeReviewers=" + activeReviewerIds.size() + " >= targetLimit=" + targetLimit);
+                logger.info("assignments.skipped pullRequestId={} repositoryId={} activeCount={}", 
+                    pullRequestId, repositoryId, activeReviewerIds.size());
+                return;
+            }
 
             // 5. Junior Growth Routing (only for non-high complexity)
-            if (!isHighComplexity && config.getJuniorGrowthRatio() > 0.0) {
+            if (!isHighComplexity && config.getJuniorGrowthRatio() > 0.0 && assignedCandidates.size() < remainingLimit) {
                 double roll = random.nextDouble();
                 boolean tryJuniorGrowth = roll <= config.getJuniorGrowthRatio();
                 System.out.println("[DEBUG][AssignmentEngine] junior.growth.evaluation pullRequestId=" + pullRequestId 
@@ -187,24 +213,24 @@ public class AssignmentService {
             scoredCandidates.sort(Comparator.comparingDouble(ReviewerCandidate::finalScore).reversed());
 
             // Select remaining top-ranked candidates to fulfill reviewer limit
-            int remainingNeeded = targetLimit - assignedCandidates.size();
+            int remainingNeeded = remainingLimit - assignedCandidates.size();
             for (int i = 0; i < Math.min(remainingNeeded, scoredCandidates.size()); i++) {
                 assignedCandidates.add(scoredCandidates.get(i));
             }
 
             System.out.println("[DEBUG][AssignmentEngine] reviewers.selected pullRequestId=" + pullRequestId 
-                + " selectedCount=" + assignedCandidates.size() + " targetLimit=" + targetLimit);
+                + " selectedCount=" + assignedCandidates.size() + " remainingLimit=" + remainingLimit);
             logger.info("reviewers.selected pullRequestId={} repositoryId={} selectedCount={} target={}", 
-                pullRequestId, repositoryId, assignedCandidates.size(), targetLimit);
+                pullRequestId, repositoryId, assignedCandidates.size(), remainingLimit);
 
             // 7. Fallback Logic: if we are under-capacity, loop through fallbacks sequentially
-            if (assignedCandidates.size() < targetLimit) {
+            if (assignedCandidates.size() < remainingLimit) {
                 Set<Long> alreadyAssignedIds = assignedCandidates.stream()
                     .map(ReviewerCandidate::developerId)
                     .collect(Collectors.toSet());
 
                 // Fallback 1: Highest expertise candidate in the repository (excluding author & assigned)
-                if (assignedCandidates.size() < targetLimit) {
+                if (assignedCandidates.size() < remainingLimit) {
                     Optional<DeveloperMeta> fb1 = poolWithoutAuthor.stream()
                         .filter(c -> !alreadyAssignedIds.contains(c.id()))
                         .filter(c -> expertiseMap.getOrDefault(c.id(), 0.0) > 0.0)
@@ -226,7 +252,7 @@ public class AssignmentService {
                 }
 
                 // Fallback 2: Any Senior contributor in the repository (excluding author & assigned)
-                if (assignedCandidates.size() < targetLimit) {
+                if (assignedCandidates.size() < remainingLimit) {
                     Optional<DeveloperMeta> fb2 = poolWithoutAuthor.stream()
                         .filter(c -> !alreadyAssignedIds.contains(c.id()))
                         .filter(c -> c.seniority() == DeveloperSeniority.SENIOR)
@@ -247,7 +273,7 @@ public class AssignmentService {
                 }
 
                 // Fallback 3: Repository contributor with the highest contribution_count (excluding author & assigned)
-                if (assignedCandidates.size() < targetLimit) {
+                if (assignedCandidates.size() < remainingLimit) {
                     Optional<DeveloperMeta> fb3 = poolWithoutAuthor.stream()
                         .filter(c -> !alreadyAssignedIds.contains(c.id()))
                         .max(Comparator.comparingInt(DeveloperMeta::contributionCount));
@@ -272,12 +298,18 @@ public class AssignmentService {
             for (ReviewerCandidate rc : assignedCandidates) {
                 jdbcTemplate.update(
                     "INSERT INTO reviewer_assignments (" +
-                    "  pull_request_id, developer_id, assignment_score, assignment_reason, assignment_type, created_at, updated_at" +
-                    ") VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) " +
+                    "  pull_request_id, developer_id, assignment_score, assignment_reason, assignment_type, " +
+                    "  assignment_status, escalation_level, created_at, updated_at" +
+                    ") VALUES (?, ?, ?, ?, ?, 'ASSIGNED', 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) " +
                     "ON CONFLICT (pull_request_id, developer_id) DO UPDATE SET " +
                     "  assignment_score = EXCLUDED.assignment_score, " +
                     "  assignment_reason = EXCLUDED.assignment_reason, " +
                     "  assignment_type = EXCLUDED.assignment_type, " +
+                    "  assignment_status = 'ASSIGNED', " +
+                    "  escalation_level = 0, " +
+                    "  reminder_sent_at = NULL, " +
+                    "  escalated_at = NULL, " +
+                    "  reassigned_at = NULL, " +
                     "  updated_at = CURRENT_TIMESTAMP",
                     pullRequestId,
                     rc.developerId(),
@@ -316,7 +348,8 @@ public class AssignmentService {
             "SELECT COUNT(*) " +
             "FROM reviewer_assignments ra " +
             "JOIN pull_requests pr ON ra.pull_request_id = pr.id " +
-            "WHERE ra.developer_id = ? AND pr.status IN ('OPEN', 'DRAFT')",
+            "WHERE ra.developer_id = ? AND pr.status IN ('OPEN', 'DRAFT') " +
+            "  AND ra.assignment_status IN ('ASSIGNED', 'REMINDER_SENT', 'STALE')",
             Integer.class,
             developerId
         );
