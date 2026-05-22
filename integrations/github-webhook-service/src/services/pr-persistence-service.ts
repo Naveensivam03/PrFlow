@@ -1,7 +1,11 @@
 import { InMemoryEventDispatcher } from "../events/dispatcher";
 import type { PrflowEvent, PrStatus } from "../events/types";
 import { getInstallationAccessToken } from "../github/app-auth";
-import { fetchPullRequestFiles, type GithubPullRequestFile } from "../github/github-api-client";
+import {
+  fetchPullRequestFiles,
+  type GithubPullRequestFile,
+} from "../github/github-api-client";
+import { fetchRepositoryContributors } from "../github/client/github-contributors-client";
 import { logger } from "../logging/logger";
 import { extractScopeFromFilePath } from "../scope/scope-extractor";
 
@@ -31,7 +35,9 @@ function mapChangeType(fileStatus: string): string {
   return fileStatus.toUpperCase();
 }
 
-function deduplicateFilesByPath(files: GithubPullRequestFile[]): GithubPullRequestFile[] {
+function deduplicateFilesByPath(
+  files: GithubPullRequestFile[],
+): GithubPullRequestFile[] {
   const byPath = new Map<string, GithubPullRequestFile>();
   for (const file of files) {
     byPath.set(file.filename, file);
@@ -55,14 +61,16 @@ export class PullRequestPersistenceService {
       throw new Error("Missing installation information for PR persistence");
     }
     if (!Number.isFinite(githubOrgId)) {
-      throw new Error("Missing tenant organization identifier for PR persistence");
+      throw new Error(
+        "Missing tenant organization identifier for PR persistence",
+      );
     }
 
     logger.info("Starting PR persistence workflow", {
       deliveryId: event.deliveryId,
       githubPrNumber: event.githubPrNumber,
       owner: pr.owner,
-      repo: pr.repo
+      repo: pr.repo,
     });
 
     const installationToken = await getInstallationAccessToken(installationId);
@@ -71,44 +79,52 @@ export class PullRequestPersistenceService {
       repo: pr.repo,
       pullNumber: event.githubPrNumber,
       installationToken,
-      deliveryId: event.deliveryId
+      deliveryId: event.deliveryId,
     });
     const uniqueFiles = deduplicateFilesByPath(files);
-
+    let organizationId: number = 0;
     let repositoryId: number = 0;
     let pullRequestId: number = 0;
+    let needContributorSync = false;
 
     await Bun.sql.begin(async (tx) => {
       await this.acquireWorkflowLock(tx, {
         owner: pr.owner,
         repo: pr.repo,
-        githubPrNumber: event.githubPrNumber
+        githubPrNumber: event.githubPrNumber,
       });
 
       logger.info("PR persistence checkpoint", {
         deliveryId: event.deliveryId,
         githubPrNumber: event.githubPrNumber,
-        checkpoint: "transaction_started"
+        checkpoint: "transaction_started",
       });
 
-      const organizationId = await this.upsertOrganization(tx, {
+      organizationId = await this.upsertOrganization(tx, {
         githubInstallationId: installationId,
         githubOrgId,
-        name: pr.owner
+        name: pr.owner,
       });
 
       repositoryId = await this.upsertRepository(tx, {
         organizationId,
         githubRepoId: pr.githubRepoId,
-        name: pr.repo
+        name: pr.repo,
       });
+
+      // detect whether repository contributors have been synchronized before
+      const existing =
+        (await tx`SELECT 1 as exists FROM repository_developers WHERE repository_id = ${repositoryId} LIMIT 1`) as {
+          exists?: number;
+        }[];
+      needContributorSync = existing.length === 0;
 
       const authorId = await this.upsertDeveloper(tx, {
         organizationId,
         githubUserId: pr.author.githubUserId,
         username: pr.author.username,
         displayName: pr.author.displayName,
-        avatarUrl: pr.author.avatarUrl
+        avatarUrl: pr.author.avatarUrl,
       });
 
       pullRequestId = await this.upsertPullRequest(tx, {
@@ -120,7 +136,7 @@ export class PullRequestPersistenceService {
         status: mapPrStatus(pr.status),
         openedAt: pr.openedAt,
         mergedAt: pr.mergedAt,
-        closedAt: pr.closedAt
+        closedAt: pr.closedAt,
       });
 
       await this.replacePullRequestFiles(tx, pullRequestId, uniqueFiles);
@@ -129,29 +145,110 @@ export class PullRequestPersistenceService {
         deliveryId: event.deliveryId,
         githubPrNumber: event.githubPrNumber,
         checkpoint: "files_persisted",
-        fileCount: uniqueFiles.length
+        fileCount: uniqueFiles.length,
+        needContributorSync,
       });
     });
+
+    // Perform contributor synchronization outside the main transaction to avoid long-running DB locks
+    if (needContributorSync) {
+      try {
+        logger.info("Starting contributor synchronization", {
+          deliveryId: event.deliveryId,
+          owner: pr.owner,
+          repo: pr.repo,
+          repositoryId,
+        });
+
+        const contributors = await fetchRepositoryContributors({
+          owner: pr.owner,
+          repo: pr.repo,
+          installationToken: installationToken,
+          deliveryId: event.deliveryId,
+        });
+
+        logger.info("GitHub contributors fetched", {
+          deliveryId: event.deliveryId,
+          owner: pr.owner,
+          repo: pr.repo,
+          contributorCount: contributors.length,
+        });
+
+        // persist contributors and relationships in a fresh transaction
+        await Bun.sql.begin(async (tx) => {
+          // lock repository-level work to be replay-safe
+          await tx`SELECT pg_advisory_xact_lock(hashtext(${`${pr.owner}/${pr.repo}#contributors`}))`;
+
+          for (const c of contributors) {
+            const developerId = await this.upsertDeveloper(tx, {
+              organizationId: organizationId,
+              githubUserId: c.id,
+              username: c.login,
+              displayName: null,
+              avatarUrl: c.avatar_url ?? null,
+            });
+
+            // upsert repository_developers
+            await tx`
+              INSERT INTO repository_developers (repository_id, developer_id, contribution_count, last_contributed_at)
+              VALUES (${repositoryId}, ${developerId}, ${c.contributions}, CURRENT_TIMESTAMP)
+              ON CONFLICT (repository_id, developer_id)
+              DO UPDATE SET
+                contribution_count = EXCLUDED.contribution_count,
+                last_contributed_at = GREATEST(repository_developers.last_contributed_at, EXCLUDED.last_contributed_at),
+                updated_at = CURRENT_TIMESTAMP
+            `;
+
+            logger.info("Repository relationship persisted", {
+              deliveryId: event.deliveryId,
+              repositoryId,
+              developerId,
+              contributions: c.contributions,
+            });
+          }
+        });
+
+        logger.info("Contributor synchronization completed", {
+          deliveryId: event.deliveryId,
+          owner: pr.owner,
+          repo: pr.repo,
+          repositoryId,
+        });
+      } catch (error) {
+        logger.warn("Contributor synchronization failed", {
+          deliveryId: event.deliveryId,
+          owner: pr.owner,
+          repo: pr.repo,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
 
     await this.dispatcher.publish({
       ...event,
       eventType: "PULL_REQUEST_ANALYZED",
       dbPullRequestId: pullRequestId,
-      dbRepositoryId: repositoryId
+      dbRepositoryId: repositoryId,
     });
 
     logger.info("PR persistence workflow completed", {
       deliveryId: event.deliveryId,
-      githubPrNumber: event.githubPrNumber
+      githubPrNumber: event.githubPrNumber,
     });
   }
 
-  private async acquireWorkflowLock(tx: any, input: { owner: string; repo: string; githubPrNumber: number }): Promise<void> {
+  private async acquireWorkflowLock(
+    tx: any,
+    input: { owner: string; repo: string; githubPrNumber: number },
+  ): Promise<void> {
     const lockKey = `${input.owner}/${input.repo}#${input.githubPrNumber}`;
     await tx`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
   }
 
-  private async upsertOrganization(tx: any, input: { githubInstallationId: number; githubOrgId: number; name: string }): Promise<number> {
+  private async upsertOrganization(
+    tx: any,
+    input: { githubInstallationId: number; githubOrgId: number; name: string },
+  ): Promise<number> {
     const rows = (await tx`
       INSERT INTO organizations (github_installation_id, github_org_id, name, plan_type, is_active)
       VALUES (${input.githubInstallationId}, ${input.githubOrgId}, ${input.name}, ${"FREE"}, ${true})
@@ -166,7 +263,10 @@ export class PullRequestPersistenceService {
     return requireInsertedId(rows, "organization");
   }
 
-  private async upsertRepository(tx: any, input: { organizationId: number; githubRepoId: number; name: string }): Promise<number> {
+  private async upsertRepository(
+    tx: any,
+    input: { organizationId: number; githubRepoId: number; name: string },
+  ): Promise<number> {
     const rows = (await tx`
       INSERT INTO repositories (organization_id, github_repo_id, name, default_branch, expertise_mode, is_active)
       VALUES (${input.organizationId}, ${input.githubRepoId}, ${input.name}, ${"main"}, ${"GENERAL"}, ${true})
@@ -182,7 +282,13 @@ export class PullRequestPersistenceService {
 
   private async upsertDeveloper(
     tx: any,
-    input: { organizationId: number; githubUserId: number; username: string; displayName: string | null; avatarUrl: string | null }
+    input: {
+      organizationId: number;
+      githubUserId: number;
+      username: string;
+      displayName: string | null;
+      avatarUrl: string | null;
+    },
   ): Promise<number> {
     const rows = (await tx`
       INSERT INTO developers (organization_id, github_user_id, username, display_name, avatar_url, is_active)
@@ -211,7 +317,7 @@ export class PullRequestPersistenceService {
       openedAt: string;
       mergedAt: string | null;
       closedAt: string | null;
-    }
+    },
   ): Promise<number> {
     const rows = (await tx`
       INSERT INTO pull_requests
@@ -233,7 +339,11 @@ export class PullRequestPersistenceService {
     return requireInsertedId(rows, "pull_request");
   }
 
-  private async replacePullRequestFiles(tx: any, pullRequestId: number, files: GithubPullRequestFile[]): Promise<void> {
+  private async replacePullRequestFiles(
+    tx: any,
+    pullRequestId: number,
+    files: GithubPullRequestFile[],
+  ): Promise<void> {
     await tx`DELETE FROM pull_request_files WHERE pull_request_id = ${pullRequestId}`;
 
     for (const file of files) {
