@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import prflow.spring_backend.dto.ApiResponse;
 import prflow.spring_backend.engines.complexity.PullRequestAnalyzedHandler.PullRequestAnalyzedEvent;
 
+import prflow.spring_backend.modules.pullrequest.event.PullRequestMergedEvent;
+import prflow.spring_backend.modules.pullrequest.event.ReviewSubmittedEvent;
+
 /**
  * External REST gateway for PRFlow lifecycle events.
  * Accepts POST requests from ingestion systems and propagates them to internal Spring engines.
@@ -40,6 +43,38 @@ public class PullRequestEventController {
         eventPublisher.publishEvent(event);
 
         return ResponseEntity.ok(ApiResponse.success("Event received and propagated", null));
+    }
+
+    @PostMapping("/review-submitted")
+    public ResponseEntity<ApiResponse<Void>> handleReviewSubmitted(@RequestBody EventRequest request) {
+        logger.info("External ingress REVIEW_SUBMITTED received: pullRequestId={} repositoryId={} deliveryId={}",
+            request.pullRequestId(), request.repositoryId(), request.deliveryId());
+
+        ReviewSubmittedEvent event = new ReviewSubmittedEvent(
+            request.pullRequestId(),
+            request.repositoryId(),
+            request.deliveryId()
+        );
+
+        eventPublisher.publishEvent(event);
+
+        return ResponseEntity.ok(ApiResponse.success("Review submitted event received and propagated", null));
+    }
+
+    @PostMapping("/pull-request-merged")
+    public ResponseEntity<ApiResponse<Void>> handlePullRequestMerged(@RequestBody EventRequest request) {
+        logger.info("External ingress PULL_REQUEST_MERGED received: pullRequestId={} repositoryId={} deliveryId={}",
+            request.pullRequestId(), request.repositoryId(), request.deliveryId());
+
+        PullRequestMergedEvent event = new PullRequestMergedEvent(
+            request.pullRequestId(),
+            request.repositoryId(),
+            request.deliveryId()
+        );
+
+        eventPublisher.publishEvent(event);
+
+        return ResponseEntity.ok(ApiResponse.success("Pull request merged event received and propagated", null));
     }
 
     /**

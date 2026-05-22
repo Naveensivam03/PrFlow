@@ -2,12 +2,15 @@ package prflow.spring_backend.modules.developer.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import prflow.spring_backend.entity.BaseEntity;
+import prflow.spring_backend.enums.DeveloperSeniority;
 import prflow.spring_backend.modules.organization.domain.Organization;
 
 @Entity
@@ -41,6 +44,10 @@ public class Developer extends BaseEntity {
 
     @Column(name = "last_activity_at")
     private LocalDateTime lastActivityAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "seniority", nullable = false, length = 50)
+    private DeveloperSeniority seniority = DeveloperSeniority.MID;
 
     public Organization getOrganization() {
         return organization;
@@ -112,5 +119,13 @@ public class Developer extends BaseEntity {
 
     public void setLastActivityAt(LocalDateTime lastActivityAt) {
         this.lastActivityAt = lastActivityAt;
+    }
+
+    public DeveloperSeniority getSeniority() {
+        return seniority;
+    }
+
+    public void setSeniority(DeveloperSeniority seniority) {
+        this.seniority = seniority;
     }
 }
