@@ -16,7 +16,7 @@ import prflow.spring_backend.modules.organization.domain.Organization;
 @Table(name = "repositories")
 public class Repository extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false) //since multiple repositories can be under same organization.
     @JoinColumn(name = "organization_id", nullable = false)
     private Organization organization;
 

@@ -5,20 +5,23 @@ export type PrflowEventHandler = (event: PrflowEvent) => Promise<void> | void;
 
 export class InMemoryEventDispatcher {
   private readonly handlers = new Map<string, PrflowEventHandler[]>();
-
-  subscribe(eventType: PrflowEvent["eventType"], handler: PrflowEventHandler): void {
+  //register the listeners
+  subscribe(
+    eventType: PrflowEvent["eventType"],
+    handler: PrflowEventHandler,
+  ): void {
     const existing = this.handlers.get(eventType) ?? [];
     existing.push(handler);
     this.handlers.set(eventType, existing);
   }
-
+  //publish the listeners
   async publish(event: PrflowEvent): Promise<void> {
     const handlers = this.handlers.get(event.eventType) ?? [];
 
     logger.info("Publishing internal event", {
       eventType: event.eventType,
       deliveryId: event.deliveryId,
-      handlerCount: handlers.length
+      handlerCount: handlers.length,
     });
 
     await Promise.all(
@@ -29,10 +32,10 @@ export class InMemoryEventDispatcher {
           logger.error("Event handler failed", {
             eventType: event.eventType,
             deliveryId: event.deliveryId,
-            error: error instanceof Error ? error.message : "unknown"
+            error: error instanceof Error ? error.message : "unknown",
           });
         }
-      })
+      }),
     );
   }
 }
