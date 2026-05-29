@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import prflow.spring_backend.config.GitHubAuthService;
-import prflow.spring_backend.engines.expertise.ReviewExpertiseEnricher;
+import prflow.spring_backend.engines.expertise.service.ReviewExpertiseEnricher;
 import prflow.spring_backend.modules.pullrequest.event.ReviewsSynchronizedEvent;
 
 import java.time.LocalDateTime;

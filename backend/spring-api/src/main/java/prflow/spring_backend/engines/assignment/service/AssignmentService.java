@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.assignment;
+package prflow.spring_backend.engines.assignment.service;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -9,7 +9,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import prflow.spring_backend.engines.expertise.ExpertiseCalculatedEvent;
+import prflow.spring_backend.engines.expertise.event.ExpertiseCalculatedEvent;
 import prflow.spring_backend.engines.assignment.model.ReviewerCandidate;
 import prflow.spring_backend.enums.DeveloperSeniority;
 

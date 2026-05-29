@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.escalation;
+package prflow.spring_backend.engines.escalation.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

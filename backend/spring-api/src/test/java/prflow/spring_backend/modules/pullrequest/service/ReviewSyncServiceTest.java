@@ -14,7 +14,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import prflow.spring_backend.config.GitHubAuthService;
-import prflow.spring_backend.engines.expertise.ReviewExpertiseEnricher;
+import prflow.spring_backend.engines.expertise.service.ReviewExpertiseEnricher;
 import prflow.spring_backend.modules.pullrequest.event.ReviewsSynchronizedEvent;
 
 class ReviewSyncServiceTest {

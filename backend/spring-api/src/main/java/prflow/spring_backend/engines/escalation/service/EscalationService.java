@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.escalation;
+package prflow.spring_backend.engines.escalation.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,8 +7,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import prflow.spring_backend.engines.assignment.AssignmentService;
-import prflow.spring_backend.engines.expertise.ExpertiseCalculatedEvent;
+import prflow.spring_backend.engines.assignment.service.AssignmentService;
+import prflow.spring_backend.engines.expertise.event.ExpertiseCalculatedEvent;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;

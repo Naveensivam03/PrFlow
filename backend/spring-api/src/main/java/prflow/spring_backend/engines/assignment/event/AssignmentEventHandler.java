@@ -1,10 +1,10 @@
-package prflow.spring_backend.engines.assignment;
+package prflow.spring_backend.engines.assignment.event;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import prflow.spring_backend.engines.expertise.ExpertiseCalculatedEvent;
+import prflow.spring_backend.engines.expertise.event.ExpertiseCalculatedEvent;
 
 /**
  * Orchestrator listener that chains Downstream Reviewer Assignment directly behind Expertise engine calculations.

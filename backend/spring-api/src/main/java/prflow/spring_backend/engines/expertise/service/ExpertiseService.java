@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.expertise;
+package prflow.spring_backend.engines.expertise.service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -11,7 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import prflow.spring_backend.engines.complexity.ComplexityCalculatedEvent;
+import prflow.spring_backend.engines.complexity.event.ComplexityCalculatedEvent;
 
 /**
  * Transactional orchestrator for Expertise Engine V1.

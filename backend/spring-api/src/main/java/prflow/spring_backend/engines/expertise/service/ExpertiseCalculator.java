@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.expertise;
+package prflow.spring_backend.engines.expertise.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

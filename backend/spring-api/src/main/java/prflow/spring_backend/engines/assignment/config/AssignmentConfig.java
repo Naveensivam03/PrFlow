@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.assignment;
+package prflow.spring_backend.engines.assignment.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;

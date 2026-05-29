@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.escalation;
+package prflow.spring_backend.engines.escalation.event;
 
 import java.time.LocalDateTime;
 

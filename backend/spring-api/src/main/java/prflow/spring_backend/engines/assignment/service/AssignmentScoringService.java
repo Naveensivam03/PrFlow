@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.assignment;
+package prflow.spring_backend.engines.assignment.service;
 
 import org.springframework.stereotype.Service;
 

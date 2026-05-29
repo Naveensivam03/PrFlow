@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.expertise;
+package prflow.spring_backend.engines.expertise.service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;

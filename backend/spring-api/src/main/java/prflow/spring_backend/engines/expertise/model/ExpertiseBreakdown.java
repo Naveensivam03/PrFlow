@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.expertise;
+package prflow.spring_backend.engines.expertise.model;
 
 /**
  * Snapshot breakdown representing calculated contribution details for auditable explainability.

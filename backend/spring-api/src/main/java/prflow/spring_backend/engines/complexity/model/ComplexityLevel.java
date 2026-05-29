@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.complexity;
+package prflow.spring_backend.engines.complexity.model;
 
 /**
  * Canonical complexity tiers consumed by orchestration policies.

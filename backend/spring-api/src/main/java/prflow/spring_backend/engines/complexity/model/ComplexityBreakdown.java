@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.complexity;
+package prflow.spring_backend.engines.complexity.model;
 
 /**
  * Explainable scoring snapshot for a single complexity calculation run.

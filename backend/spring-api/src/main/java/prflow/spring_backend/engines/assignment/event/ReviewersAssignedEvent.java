@@ -1,4 +1,4 @@
-package prflow.spring_backend.engines.assignment;
+package prflow.spring_backend.engines.assignment.event;
 
 import java.util.List;
 
