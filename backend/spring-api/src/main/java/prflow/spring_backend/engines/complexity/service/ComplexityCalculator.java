@@ -90,7 +90,24 @@ public class ComplexityCalculator {
             return 0.0;
         }
         if (highWatermark <= 0) {
-            return 100.0;
+            return 100.0  System.out.println(
+//            "[DEBUG][ComplexityEngine] scoring.breakdown pullRequestId=" +
+//                event.pullRequestId() +
+//                " fileCountScore=" +
+//                breakdown.fileCountScore() +
+//                " additionsScore=" +
+//                breakdown.additionsScore() +
+//                " deletionsScore=" +
+//                breakdown.deletionsScore() +
+//                " diffScore=" +
+//                breakdown.diffScore() +
+//                " directorySpreadScore=" +
+//                breakdown.directorySpreadScore() +
+//                " finalScore=" +
+//                breakdown.finalScore() +
+//                " level=" +
+//                breakdown.complexityLevel()
+//        ;
         }
 
         double bounded = (rawValue * 100.0) / highWatermark;

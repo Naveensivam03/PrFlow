@@ -14,9 +14,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class PullRequestAnalyzedHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(
-        PullRequestAnalyzedHandler.class
-    );
+    // private static final Logger logger = LoggerFactory.getLogger(
+    //     PullRequestAnalyzedHandler.class
+    // );
 
     private final ComplexityService complexityService;
 

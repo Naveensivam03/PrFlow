@@ -112,28 +112,7 @@ public class ComplexityService {
             signalAggregate.totalDeletions(),
             signalAggregate.uniqueDirectoriesTouched()
         );
-//        System.out.println(
-//            "[DEBUG][ComplexityEngine] scoring.breakdown pullRequestId=" +
-//                event.pullRequestId() +
-//                " fileCountScore=" +
-//                breakdown.fileCountScore() +
-//                " additionsScore=" +
-//                breakdown.additionsScore() +
-//                " deletionsScore=" +
-//                breakdown.deletionsScore() +
-//                " diffScore=" +
-//                breakdown.diffScore() +
-//                " directorySpreadScore=" +
-//                breakdown.directorySpreadScore() +
-//                " finalScore=" +
-//                breakdown.finalScore() +
-//                " level=" +
-//                breakdown.complexityLevel()
-//        );
 
-        // log removed: complexity.engine.scoring.breakdown (scoring details available via breakdown object)
-//
-        // log removed: complexity.engine.final.score.calculated (final score and level are persisted below)
 
         LocalDateTime calculatedAt = LocalDateTime.now();
         int updatedRows = jdbcTemplate.update(
