@@ -160,7 +160,7 @@ if [[ -x "$ROOT_DIR/backend/spring-api/mvnw" ]]; then
     export SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL"
     export SPRING_DATASOURCE_USERNAME="$POSTGRES_USER"
     export SPRING_DATASOURCE_PASSWORD="$POSTGRES_PASSWORD"
-    ./mvnw -q -DskipTests -Dspring.main.web-application-type=none spring-boot:run
+    ./mvnw -q -Dmaven.test.skip=true -Dspring.main.web-application-type=none spring-boot:run
   )
   echo "[INFO] Flyway migration run completed"
 else
