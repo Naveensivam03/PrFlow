@@ -12,6 +12,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import prflow.spring_backend.engines.complexity.event.ComplexityCalculatedEvent;
+import prflow.spring_backend.engines.expertise.config.ExpertiseConfig;
+import prflow.spring_backend.engines.expertise.event.ExpertiseCalculatedEvent;
+import prflow.spring_backend.engines.expertise.model.ExpertiseBreakdown;
 
 /**
  * Transactional orchestrator for Expertise Engine V1.

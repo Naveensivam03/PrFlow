@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --radius-page: var(--radius-page);
+  --radius-panel: var(--radius-panel);
+  --radius-card: var(--radius-card);
+  --radius-button: var(--radius-button);
+  --radius-input: var(--radius-input);
+
+  --font-sans: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, 'Fira Code', 'JetBrains Mono', monospace;
+
+  --shadow-premium: 0 16px 64px rgba(0, 0, 0, 0.45);
+  --shadow-premium-light: 0 16px 64px rgba(0, 0, 0, 0.03);
+}
+
+@layer base {
+  :root {
+    --background: #060709; /* Deep metallic Titanium background */
+    --surface: #0c0e13; /* Dark navy-black base */
+    --surface-elevated: #12141c; /* Solid backup surfaces */
+    --border: rgba(255, 255, 255, 0.045); /* Extremely fine subtle border */
+    --text-primary: rgba(255, 255, 255, 0.90); /* High contrast muted text */
+    --text-secondary: rgba(255, 255, 255, 0.60); /* Medium contrast text */
+    --text-muted: rgba(255, 255, 255, 0.40); /* Muted diagnostic details */
+    --accent: #5EA1FF; /* Low-contrast accent blue */
+    --success: #30D158;
+    --warning: #FF9F0A;
+    --danger: #FF453A;
+
+    --radius-page: 32px; /* Standard sidebar edge curve */
+    --radius-panel: 24px;
+    --radius-card: 18px;
+    --radius-button: 14px;
+    --radius-input: 14px;
+  }
+
+  .light {
+    --background: #E8E9EC; /* Light Titanium */
+    --surface: #F0F2F6; /* Light gray base */
+    --surface-elevated: #FFFFFF;
+    --border: rgba(0, 0, 0, 0.05);
+    --text-primary: rgba(0, 0, 0, 0.85);
+    --text-secondary: rgba(0, 0, 0, 0.55);
+    --text-muted: rgba(0, 0, 0, 0.38);
+    --accent: #0066CC;
+    --success: #28CD41;
+    --warning: #FF9500;
+    --danger: #FF3B30;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--text-primary);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+  }
+}
+
+/* Enhanced Translucent Glass System */
+@utility glass-sidebar {
+  /* High-blur organic dark sidebar */
+  background: rgba(12, 14, 19, 0.55);
+  backdrop-filter: blur(36px) saturate(170%);
+  -webkit-backdrop-filter: blur(36px) saturate(170%);
+  border: 1px solid var(--border);
+}
+
+.light .glass-sidebar {
+  background: rgba(230, 233, 240, 0.65);
+  backdrop-filter: blur(36px) saturate(170%);
+  -webkit-backdrop-filter: blur(36px) saturate(170%);
+  border: 1px solid var(--border);
+}
+
+@utility glass-panel {
+  /* Translucent content container */
+  background: rgba(16, 18, 25, 0.35);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  border: 1px solid var(--border);
+}
+
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px) saturate(130%);
+  -webkit-backdrop-filter: blur(24px) saturate(130%);
+  border: 1px solid var(--border);
+}
+
+@utility glass-overlay {
+  background: rgba(6, 7, 9, 0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.light .glass-overlay {
+  background: rgba(232, 233, 236, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Glowing Border Accent System */
+@utility mac-glow {
+  position: relative;
+}
+
+.mac-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.04), rgba(255,255,255,0.005));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.light .mac-glow::after {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.25), rgba(0,0,0,0.015));
+}
+
+/* Typography styles matching design tokens */
+.font-display {
+  font-size: 2.125rem; /* 34px */
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.font-heading {
+  font-size: 1.375rem; /* 22px */
+  line-height: 1.3;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+}
+
+.font-subheading {
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.font-body {
+  font-size: 0.9375rem; /* 15px */
+  line-height: 1.5;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.font-caption {
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.45;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 9999px;
+}
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.05);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.1);
+}

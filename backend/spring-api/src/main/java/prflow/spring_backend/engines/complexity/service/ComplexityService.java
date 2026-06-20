@@ -8,7 +8,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import prflow.spring_backend.engines.complexity.PullRequestAnalyzedHandler.PullRequestAnalyzedEvent;
+import prflow.spring_backend.engines.complexity.event.ComplexityCalculatedEvent;
+import prflow.spring_backend.engines.complexity.event.PullRequestAnalyzedEvent;
+import prflow.spring_backend.engines.complexity.model.ComplexityBreakdown;
 
 /**
  * Transactional orchestrator for Complexity Engine V1.

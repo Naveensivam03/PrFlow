@@ -1,5 +1,8 @@
 package prflow.spring_backend.engines.assignment;
 
+import prflow.spring_backend.engines.assignment.config.AssignmentConfig;
+import prflow.spring_backend.engines.assignment.service.AssignmentScoringService;
+
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

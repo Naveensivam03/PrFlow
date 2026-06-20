@@ -3,6 +3,8 @@ package prflow.spring_backend.engines.expertise.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import org.springframework.stereotype.Component;
+import prflow.spring_backend.engines.expertise.config.ExpertiseConfig;
+import prflow.spring_backend.engines.expertise.model.ExpertiseBreakdown;
 
 /**
  * Deterministic expertise calculator.

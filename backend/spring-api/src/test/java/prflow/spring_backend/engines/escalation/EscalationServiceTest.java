@@ -13,6 +13,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import prflow.spring_backend.engines.assignment.service.AssignmentService;
+import prflow.spring_backend.engines.escalation.service.EmailNotificationService;
+import prflow.spring_backend.engines.escalation.service.EscalationService;
 import prflow.spring_backend.engines.expertise.event.ExpertiseCalculatedEvent;
 
 class EscalationServiceTest {

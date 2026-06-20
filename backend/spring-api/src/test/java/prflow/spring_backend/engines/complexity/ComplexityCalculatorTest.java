@@ -1,5 +1,10 @@
 package prflow.spring_backend.engines.complexity;
 
+import prflow.spring_backend.engines.complexity.config.ComplexityConfig;
+import prflow.spring_backend.engines.complexity.model.ComplexityBreakdown;
+import prflow.spring_backend.engines.complexity.model.ComplexityLevel;
+import prflow.spring_backend.engines.complexity.service.ComplexityCalculator;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

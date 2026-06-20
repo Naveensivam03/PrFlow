@@ -141,7 +141,7 @@ export async function fetchRepositoryContributors(
         if (link) {
           const match = link.match(/<([^>]+)>; rel="next"/);
           if (match) {
-            url = match[1];
+            url = match[1] ?? "";
             continue;
           }
         }

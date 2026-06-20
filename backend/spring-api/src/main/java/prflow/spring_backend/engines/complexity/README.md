@@ -84,3 +84,54 @@ Cross-module PRs are operationally riskier because review context shifts across 
 ## Replay safety
 
 The service takes a row lock on the PR and skips duplicates when `complexity_calculated_at` already exists. This prevents replay storms from producing repeated writes or inconsistent intelligence.
+
+✦ To run the project and set up the local environment, use the following commands. These assume you are in the project root directory.
+
+1. Initial Setup & Infrastructure
+   This script creates environment files, starts Docker containers (PostgreSQL and Valkey), and runs database migrations.
+
+1 # Run the setup script from the root
+2 bash scripts/setup-local.sh
+
+2. Manual Docker Management
+   If you need to manage the infrastructure containers manually:
+
+1 # Start Postgres and Valkey
+2 docker compose -f infra/docker/docker-compose.yml up -d
+3
+4 # Stop all services
+5 docker compose -f infra/docker/docker-compose.yml down
+6
+7 # See logs
+8 docker compose -f infra/docker/docker-compose.yml logs -f
+
+3. Database Inspection
+   Access the PostgreSQL database running inside the Docker container:
+
+1 # Enter psql terminal
+2 docker exec -it prflow-postgres psql -U prflow_app -d prflow_db
+3
+4 # Useful psql commands once inside:
+5 # \dt      -> List tables
+6 # \d table -> Describe table
+7 # \q      -> Quit
+
+4. Webhook Service
+   Run the GitHub webhook integration service (uses Port 3001 by default):
+
+1 cd integrations/github-webhook-service
+2 bun install
+3 bun run dev
+
+5. ngrok (Public Tunnel)
+   Expose the webhook service to the internet so GitHub can reach your local machine:
+
+1 ngrok http 3001
+
+6. Backend API (Spring Boot)
+   To run the main backend service:
+
+1 cd backend/spring-api
+2 ./mvnw spring-boot:run
+
+Note: The setup-local.sh script automatically handles the Flyway migrations for you during its execution.

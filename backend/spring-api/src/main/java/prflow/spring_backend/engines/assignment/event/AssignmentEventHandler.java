@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import prflow.spring_backend.engines.assignment.service.AssignmentService;
 import prflow.spring_backend.engines.expertise.event.ExpertiseCalculatedEvent;
 
 /**

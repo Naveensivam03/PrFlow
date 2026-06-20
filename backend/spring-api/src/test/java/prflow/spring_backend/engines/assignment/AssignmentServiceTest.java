@@ -11,6 +11,9 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import prflow.spring_backend.engines.assignment.config.AssignmentConfig;
+import prflow.spring_backend.engines.assignment.service.AssignmentScoringService;
+import prflow.spring_backend.engines.assignment.service.AssignmentService;
 import prflow.spring_backend.engines.expertise.event.ExpertiseCalculatedEvent;
 import prflow.spring_backend.enums.DeveloperSeniority;
 

@@ -9,8 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import prflow.spring_backend.dto.ApiResponse;
-import prflow.spring_backend.engines.complexity.PullRequestAnalyzedHandler.PullRequestAnalyzedEvent;
-
+import prflow.spring_backend.engines.complexity.event.PullRequestAnalyzedEvent;
 import prflow.spring_backend.modules.pullrequest.event.PullRequestMergedEvent;
 import prflow.spring_backend.modules.pullrequest.event.ReviewSubmittedEvent;
 

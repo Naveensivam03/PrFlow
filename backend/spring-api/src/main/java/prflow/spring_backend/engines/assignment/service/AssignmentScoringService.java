@@ -1,6 +1,7 @@
 package prflow.spring_backend.engines.assignment.service;
 
 import org.springframework.stereotype.Service;
+import prflow.spring_backend.engines.assignment.config.AssignmentConfig;
 
 /**
  * Isolated, deterministic scoring calculator for V1 Reviewer Assignment Engine.
